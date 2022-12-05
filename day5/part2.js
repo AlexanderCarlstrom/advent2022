@@ -28,7 +28,6 @@ for (let i = 0; i < stacks.length; i++) {
 
 for (let i = 0; i < instructions.length; i++) {
   const instruction = instructions[i];
-  // console.log(stacks);
   const neg = instruction[0] * -1;
   const crates = stacks[instruction[1] - 1].slice(neg);
 
@@ -47,4 +46,3 @@ stacks.forEach((stack) => {
 });
 
 console.log(sum);
-console.log(stacks);
