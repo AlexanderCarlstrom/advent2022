@@ -6,9 +6,16 @@ function getAllLines(file) {
 }
 
 function getAlphabetPosition(letter) {
-  const alphabet = "abcdefghijklmnopqrstuvwxyz".split('');
-  const index = alphabet.indexOf(letter.toLowerCase())
+  const alphabet = 'abcdefghijklmnopqrstuvwxyz'.split('');
+  const index = alphabet.indexOf(letter.toLowerCase());
   return index + 1;
 }
 
-export { getAllLines, getAlphabetPosition }
+function getNumbersFromString(str) {
+  return str
+    .split(' ')
+    .filter((i) => !isNaN(parseInt(i.trim())))
+    .map((i) => parseInt(i.trim()));
+}
+
+export { getAllLines, getAlphabetPosition, getNumbersFromString };
