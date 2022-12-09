@@ -3,14 +3,13 @@ import _ from 'lodash';
 
 const input = getAllLines('day9/input.txt');
 
-const headKnot = { x: 0, y: 0 };
-// const tail = { x: 0, y: 0 };
+const head = { x: 0, y: 0 };
 const knots = [];
+const positions = [];
 
 for (let i = 0; i < 9; i++) {
   knots.push({ x: 0, y: 0 });
 }
-const positions = [];
 
 input.forEach((line) => {
   const parts = line.split(' ');
@@ -23,73 +22,41 @@ console.log(uniq.length);
 function move(direction, times) {
   for (let i = 0; i < times; i++) {
     if (direction === 'U') {
-      headKnot.y++;
-      moveUp(headKnot, knots[0]);
+      head.y++;
     } else if (direction === 'R') {
-      headKnot.x++;
-      moveRight(headKnot, knots[0]);
+      head.x++;
     } else if (direction === 'D') {
-      headKnot.y--;
-      moveDown(headKnot, knots[0]);
+      head.y--;
     } else if (direction === 'L') {
-      headKnot.x--;
-      moveLeft(headKnot, knots[0]);
+      head.x--;
     }
+    knots.forEach((knot, i) => react(i));
+    positions.push({ x: knots[8].x, y: knots[8].y });
   }
 }
 
-function moveUp(head, tail) {
-  const diff = Math.abs(head.y - tail.y);
-  if (head.x === tail.x && diff > 1) tail.y++;
-  else if ((tail.x < head.x || tail.x > head.x) && diff > 1) {
-    tail.x = head.x;
+function react(i) {
+  const h = i === 0 ? head : knots[i - 1];
+  const yDiff = Math.abs(h.y - knots[i].y);
+  const xDiff = Math.abs(h.x - knots[i].x);
 
-    if (tail.y !== head.y) tail.y++;
+  if (yDiff > 1) {
+    moveY(h, i);
+    if (xDiff === 1) moveX(h, i);
   }
 
-  if (tail === knots[8]) {
-    positions.push({ x: tail.x, y: tail.y });
-  }
-}
-
-function moveRight(head, tail) {
-  const diff = Math.abs(head.x - tail.x);
-  if (head.y === tail.y && diff > 1) tail.x++;
-  else if ((tail.y < head.y || tail.y > head.y) && diff > 1) {
-    tail.y = head.y;
-
-    if (tail.x !== head.x) tail.x++;
-  }
-
-  if (tail === knots[8]) {
-    positions.push({ x: tail.x, y: tail.y });
+  if (xDiff > 1) {
+    moveX(h, i);
+    if (yDiff === 1) moveY(h, i);
   }
 }
 
-function moveDown(head, tail) {
-  const diff = Math.abs(head.y - tail.y);
-  if (head.x === tail.x && diff > 1) tail.y--;
-  else if ((tail.x < head.x || tail.x > head.x) && diff > 1) {
-    tail.x = head.x;
-
-    if (tail.y !== head.y) tail.y--;
-  }
-
-  if (tail === knots[8]) {
-    positions.push({ x: tail.x, y: tail.y });
-  }
+function moveY(h, i) {
+  if (h.y > knots[i].y) knots[i].y++;
+  else if (h.y < knots[i].y) knots[i].y--;
 }
 
-function moveLeft(head, tail) {
-  const diff = Math.abs(head.x - tail.x);
-  if (head.y === tail.y && diff > 1) tail.x--;
-  else if ((tail.y < head.y || tail.y > head.y) && diff > 1) {
-    tail.y = head.y;
-
-    if (tail.x !== head.x) tail.x--;
-  }
-
-  if (tail === knots[8]) {
-    positions.push({ x: tail.x, y: tail.y });
-  }
+function moveX(h, i) {
+  if (h.x > knots[i].x) knots[i].x++;
+  else if (h.x < knots[i].x) knots[i].x--;
 }
