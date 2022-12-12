@@ -8,7 +8,7 @@ function getAllLines(file) {
 function getAlphabetPosition(letter) {
   const alphabet = 'abcdefghijklmnopqrstuvwxyz'.split('');
   const index = alphabet.indexOf(letter.toLowerCase());
-  return index + 1;
+  return index;
 }
 
 function getNumbersFromString(str) {
