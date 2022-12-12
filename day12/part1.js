@@ -23,12 +23,13 @@ input.forEach((line, i) => {
   }
 });
 
+console.log(map[0].length);
 step('', start, 0);
 console.log();
 
 // ---------- FUNCTIONS ----------
 
-function step(prev, pos, stepCount) {
+function step(prev, pos, stepCount, visited) {
   if (paths.length > 5 || pos.x >= map[0].length || pos.y >= map.length) return;
   if (map[pos.y][pos.x] === 'E') {
     paths.push(stepCount);
@@ -63,4 +64,15 @@ function checkHeight(pos1, pos2) {
 
 function positionExists(pos) {
   return pos.y < map.length && pos.x < map[0].length;
+}
+
+function getAdjusent(prev, pos, visited) {
+  const adjusent = [];
+  // TOP
+  if (prev !== 'down') adjusent.push({ x: pos.x, y: pos.y - 1, dir: 'up' });
+  if (prev !== 'left') adjusent.push({ x: pos.x + 1, y: pos.y, dir: 'right' });
+  if (prev !== 'up') adjusent.push({ x: pos.x, y: pos.y + 1, dir: 'down' });
+  if (prev !== 'right') adjusent.push({ x: pos.x - 1, y: pos.y, dir: 'left' });
+
+  return adjusent.filter((p) => !_.includes(visited, p));
 }
