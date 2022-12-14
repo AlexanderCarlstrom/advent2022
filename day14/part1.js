@@ -1,50 +1,59 @@
 import { getAllLines } from '../global.js';
 import _ from 'lodash';
-import { LineCounter, parse } from 'yaml';
 
-const input = getAllLines('day14/fake.txt');
-const lines = input.map((i) => i.split(' -> '));
-console.log(lines);
+const input = getAllLines('day14/input.txt');
+const lines = input.map((i) =>
+  i.split(' -> ').map((l) => {
+    const pos = l.split(',');
+    return { row: parseInt(pos[1]), col: parseInt(pos[0]) };
+  })
+);
+// console.log(lines);
 
 const map = [];
-const rows = lines.map((l) => l.map((i) => i.split(',')[1])).flat();
-const cols = lines.map((l) => l.map((i) => i.split(',')[0])).flat();
+const rows = lines.flat().map((l) => l.row);
+const cols = lines.flat().map((l) => l.col);
 const rowDiff = [Math.min(...rows), Math.max(...rows)];
 const colDiff = [Math.min(...cols), Math.max(...cols)];
 
-const row = (y) => y - rowDiff[0] + 1;
+const row = (y) => y - rowDiff[0] + 7;
 const col = (x) => x - colDiff[0] + 1;
 
-for (let i = 0; i < rowDiff[1] - rowDiff[0] + 3; i++) {
+for (let i = 0; i < rowDiff[1] - rowDiff[0] + 15; i++) {
   map[i] = [];
   for (let j = 0; j < colDiff[1] - colDiff[0] + 3; j++) {
     map[i][j] = '.';
   }
 }
 
-// for (let i = rowDiff[0] - 1; i < rowDiff[1] + 1; i++) {
-//   for (let j = colDiff[0] - 1; i < colDiff[1] + 1; i++) {
-//     map.push({ row: i, col: j, val: '.'});
-//   }
-// }
+lines.forEach((line) => createPath(line));
 
-// lines.forEach((line) => createPath(line));
-findPath(lines[0]);
+let go = true;
+let count = 0;
+while (go) {
+  go = dropSand({ row: -1, col: col(500) });
+  count++;
+}
+
 printMap();
+console.log(count - 1);
 
 // ---------- FUNCTIONS ----------
 
-function findPath(line) {
-  let prev = line[0].split(',');
-  line.forEach((l) => {
-    const pos = l.split(',');
-
-    if (pos[1] !== prev[1]) {
-      const start = Math.min(pos[1], prev[1]);
-      const end = Math.max(pos[1], prev[1]);
+function createPath(line) {
+  let prev = line[0];
+  line.forEach((pos) => {
+    if (pos.col !== prev.col) {
+      const start = Math.min(pos.col, prev.col);
+      const end = Math.max(pos.col, prev.col);
       for (let i = start; i <= end; i++) {
-        console.log(i);
-        map[row(i)][col(pos[0])] = '#';
+        map[row(pos.row)][col(i)] = '#';
+      }
+    } else if (pos.row !== prev.row) {
+      const start = Math.min(pos.row, prev.row);
+      const end = Math.max(pos.row, prev.row);
+      for (let i = start; i <= end; i++) {
+        map[row(i)][col(pos.col)] = '#';
       }
     }
 
@@ -52,26 +61,57 @@ function findPath(line) {
   });
 }
 
-function createPath(path) {
-  let prev = path[0].split(',');
-  path.forEach((p) => {
-    const pos = p.split(',');
+function dropSand(start) {
+  let run = true;
+  let current = start;
 
-    if (p[0] !== prev[0]) {
-      _.range(prev[0], p[0]).forEach((r) => {
-        map[row(pos[1])][col(r)] = '#';
-      });
-    } else if (p[1] !== prev[1]) {
-      _.range(prev[1], p[1]).forEach((r) => {
-        map[row(r)][col(pos[0])] = '#';
-      });
+  while (run) {
+    if (isOutside({ row: current.row + 1, col: current.col })) break;
+    if (isDown(current)) {
+      current = { row: current.row + 1, col: current.col };
+      continue;
     }
-    prev = p;
-  });
+
+    if (isLeft(current)) {
+      current = { row: current.row + 1, col: current.col - 1 };
+      continue;
+    }
+
+    if (isRight(current)) {
+      current = { row: current.row + 1, col: current.col + 1 };
+      continue;
+    }
+
+    map[current.row][current.col] = 'o';
+    run = false;
+  }
+
+  return !run;
+}
+
+function isDown(pos) {
+  return map[pos.row + 1][pos.col] === '.';
+}
+
+function isLeft(pos) {
+  return map[pos.row + 1][pos.col - 1] === '.';
+}
+
+function isRight(pos) {
+  return map[pos.row + 1][pos.col + 1] === '.';
+}
+
+function isOutside(pos) {
+  if (pos.row >= map.length) return true;
+  if (pos.col >= map[pos.row].length) return true;
+  return false;
 }
 
 function printMap() {
-  map.forEach((line) => {
-    console.log(line.join(''));
+  map.forEach((line, i) => {
+    console.log(line.join(' '));
+    if (i === map.length - 1) {
+      console.log(Array(line.length * 2).join('-'));
+    }
   });
 }
