@@ -1,7 +1,7 @@
-import { getAllLines, getAlphabetPosition } from '../global.js';
+import { getAllLines } from '../global.js';
 import _ from 'lodash';
 
-const input = getAllLines('day15/fake.txt');
+const input = getAllLines('day15/input.txt');
 const lines = input.map((line) => {
   const parts = line.replaceAll(',', '').replaceAll(':', '').split(' ');
   const sensor = { row: Number(parts[3].split('=')[1]), col: Number(parts[2].split('=')[1]) };
@@ -13,53 +13,47 @@ const lines = input.map((line) => {
 const rows = lines.map((l) => l.sensor.row).concat(lines.map((l) => l.beacon.row));
 const cols = lines.map((l) => l.sensor.col).concat(lines.map((l) => l.beacon.col));
 const maxRow = Math.max(...rows);
-const maxCol = Math.max(...cols);
 const minRow = Math.min(...rows);
+const maxCol = Math.max(...cols);
 const minCol = Math.min(...cols);
+const numCols = maxCol - minCol;
 
-const sensors = lines
-  .map((l) => l.sensor)
-  .map((s) => ({ row: s.row + Math.abs(minRow), col: s.col + Math.abs(minCol) }));
-const beacons = lines
-  .map((l) => l.beacon)
-  .map((s) => ({ row: s.row + Math.abs(minRow), col: s.col + Math.abs(minCol) }));
+const pairs = lines
+  .map((l) => ({
+    sensor: { row: l.sensor.row + Math.abs(minRow), col: l.sensor.col + Math.abs(minCol) },
+    beacon: { row: l.beacon.row + Math.abs(minRow), col: l.beacon.col + Math.abs(minCol) },
+  }))
+  .map((p) => ({ sensor: p.sensor, beacon: p.beacon, distance: getDistance(p.sensor, p.beacon) }));
+
+const maxDistance = Math.max(...pairs.map((p) => p.distance));
 const map = [];
 
-for (let i = 0; i < maxRow - minRow; i++) {
-  map[i] = [];
-  for (let j = 0; j < maxCol - minCol; j++) {
-    map[i][j] = '.';
-  }
-}
-const pos = [];
-// console.log(getDistance({ col: 5, row: 4 }, { col: 10, row: 9 }));
+console.log(getRow(2000000 + Math.abs(minRow)));
 
-for (let i = 0; i < maxRow - minRow; i++) {
-  for (let j = 0; j < maxCol - minCol; j++) {
-    const curr = { row: i, col: j };
-    sensors.forEach((s) => {
-      if (getDistance(curr, s) < 10) {
-        map[i][j] = '#';
-      }
+// ---------- FUNCTIONS ----------}
+
+function getRow(row) {
+  let count = 0;
+  for (let i = 0 - maxDistance * 2; i <= numCols + maxDistance * 2; i++) {
+    const current = { row, col: i };
+    let shouldCount = false;
+    pairs.forEach((pair) => {
+      if (getDistance(current, pair.sensor) <= pair.distance) shouldCount = true;
     });
+
+    pairs.forEach((pair) => {
+      if (compare(current, pair.sensor) || compare(current, pair.beacon)) shouldCount = false;
+    });
+
+    if (shouldCount) count++;
   }
+
+  return count;
 }
 
-console.log(pos);
-printMap();
-
-// ---------- FUNCTIONS ----------
-
-function printMap() {
-  map.forEach((line, i) => {
-    console.log(line.join(' '));
-    if (i === map.length - 1) {
-      console.log(Array(line.length * 2).join('-'));
-    }
-  });
+function compare(pos1, pos2) {
+  return pos1.row === pos2.row && pos1.col === pos2.col;
 }
-
-function isNearBeacon(pos) {}
 
 function getDistance(pos1, pos2) {
   const dRow = Math.abs(pos1.row - pos2.row);

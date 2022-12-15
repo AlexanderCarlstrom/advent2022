@@ -1,116 +1,168 @@
 import { getAllLines } from '../global.js';
 import _ from 'lodash';
 
-const input = getAllLines('day14/input.txt');
-const lines = input.map((i) =>
-  i.split(' -> ').map((l) => {
-    const pos = l.split(',');
-    return { row: parseInt(pos[1]), col: parseInt(pos[0]) };
-  })
-);
+// const max = 4000000;
+const max = 20;
+const input = getAllLines('day15/fake.txt');
+
+const lines = input.map((line) => {
+  const parts = line.replaceAll(',', '').replaceAll(':', '').split(' ');
+  const sensor = { row: Number(parts[3].split('=')[1]), col: Number(parts[2].split('=')[1]) };
+  const beacon = { row: Number(parts[9].split('=')[1]), col: Number(parts[8].split('=')[1]) };
+
+  return { sensor, beacon };
+});
+
+const rows = lines.map((l) => l.sensor.row).concat(lines.map((l) => l.beacon.row));
+const cols = lines.map((l) => l.sensor.col).concat(lines.map((l) => l.beacon.col));
+const maxRow = Math.max(...rows);
+const minRow = Math.min(...rows);
+const maxCol = Math.max(...cols);
+const minCol = Math.min(...cols);
+const numRows = maxRow - minRow;
+const numCols = maxCol - minCol;
+
+// const pairs = lines
+//   .map((l) => ({
+//     sensor: { row: l.sensor.row + Math.abs(minRow), col: l.sensor.col + Math.abs(minCol) },
+//     beacon: { row: l.beacon.row + Math.abs(minRow), col: l.beacon.col + Math.abs(minCol) },
+//   }))
+//   .map((p) => ({ sensor: p.sensor, beacon: p.beacon, distance: getDistance(p.sensor, p.beacon) }));
+
+const pairs = lines
+  .map((l) => ({
+    sensor: { row: l.sensor.row, col: l.sensor.col },
+    beacon: { row: l.beacon.row, col: l.beacon.col },
+  }))
+  .map((p) => ({ sensor: p.sensor, beacon: p.beacon, distance: getDistance(p.sensor, p.beacon) }))
+  .filter((p) => {
+    const { row, col } = p.sensor;
+    if (row + p.distance > max || row + p.distance < 0) return false;
+    if (row - p.distance > max || row - p.distance < 0) return false;
+    if (col + p.distance > max || col + p.distance < 0) return false;
+    if (col - p.distance > max || col - p.distance < 0) return false;
+    return true;
+  });
 
 const map = [];
-const rows = lines.flat().map((l) => l.row);
-const cols = lines.flat().map((l) => l.col);
-const maxRow = Math.max(...rows) + 2;
-const maxCol = Math.max(...cols) * 1.3;
+// for (let i = 0; i <= max; i++) {
+//   map[i] = [];
+//   for (let j = 0; j <= max; j++) {
+//     map[i][j] = '.';
+//   }
+// }
+// pairs.forEach((pair) => {
+//   if (!isOutside(pair.sensor)) {
+//     map[pair.sensor.row][pair.sensor.col] = 'S';
+//   }
 
-lines.push([
-  { row: maxRow, col: 0 },
-  { row: maxRow, col: maxCol },
-]);
+//   if (!isOutside(pair.beacon)) {
+//     map[pair.beacon.row][pair.beacon.col] = 'B';
+//   }
+// });
 
-for (let i = 0; i <= maxRow; i++) {
-  map[i] = [];
-  for (let j = 0; j <= maxCol; j++) {
-    map[i][j] = '.';
+main: for (let i = 0; i <= max; i++) {
+  for (let j = 0; j <= max; j++) {
+    const current = { row: i, col: j };
+    let found = false;
+    pairs.forEach((pair) => {
+      const distance = getDistance(current, pair.sensor);
+      if (distance > pair.distance) {
+        found = true;
+      } else {
+        found = false;
+        // return;
+      }
+    });
+
+    if (found) {
+      console.log(current);
+      break main;
+    }
   }
 }
 
-lines.forEach((line) => createPath(line));
+console.log(1);
 
-let go = true;
-let count = 0;
-while (go) {
-  go = dropSand({ row: 0, col: 500 });
-  count++;
-}
+// const maxDistance = Math.max(...pairs.map((p) => p.distance));
+// const map = [];
 
-printMap(300);
-console.log(count);
+// for (let i = 0; i <= numRows; i++) {
+//   map[i] = [];
+//   for (let j = 0; j <= numCols; j++) {
+//     map[i][j] = '.';
+//   }
+// }
+
+// pairs.map((p) => buildDiamond(p));
+// printMap();
+
+// let empty = [];
+// for (let i = 0 + Math.abs(minRow); i < max + Math.abs(minRow); i++) {
+//   for (let j = 0 + Math.abs(minCol); j < max + Math.abs(minCol); j++) {
+//     if (map[i][j] === '.') empty.push({ row: i, col: j });
+//   }
+// }
+// empty = empty.map((p) => ({ row: p.row - Math.abs(minRow), col: p.col - Math.abs(minCol) }));
+// empty = empty.filter(filterLines);
+// console.log(empty);
+// const freq = empty[0].col * 4000000 + empty[0].row;
+// console.log(freq);
 
 // ---------- FUNCTIONS ----------
 
-function createPath(line) {
-  let prev = line[0];
-  line.forEach((pos) => {
-    if (pos.col !== prev.col) {
-      const start = Math.min(pos.col, prev.col);
-      const end = Math.max(pos.col, prev.col);
-      for (let i = start; i <= end; i++) {
-        map[pos.row][i] = '#';
-      }
-    } else if (pos.row !== prev.row) {
-      const start = Math.min(pos.row, prev.row);
-      const end = Math.max(pos.row, prev.row);
-      for (let i = start; i <= end; i++) {
-        map[i][pos.col] = '#';
-      }
-    }
-
-    prev = pos;
-  });
+function calculateFrequenct(pos) {
+  const freq = pos.col * 4000000 + pos.row;
+  console.log(freq);
 }
 
-function dropSand(start) {
-  let run = true;
-  let current = start;
+function isSensorOrBeacon(current, pair) {
+  if (compare(current, pair.sensor) || compare(current, pair.beacon)) return true;
+  return false;
+}
 
-  while (run) {
-    if (isDown(current)) {
-      current = { row: current.row + 1, col: current.col };
-      continue;
+function compare(pos1, pos2) {
+  return pos1.row === pos2.row && pos1.col === pos2.col;
+}
+
+function buildDiamond(pair) {
+  const startRow = pair.sensor.row - pair.distance;
+  const startCol = pair.sensor.col - pair.distance;
+  for (let i = startRow; i < startRow + pair.distance * 2 + 1; i++) {
+    for (let j = startCol; j < startCol + pair.distance * 2 + 1; j++) {
+      const current = { row: i, col: j };
+      if (isOutside(current)) continue;
+      if (getDistance(current, pair.sensor) <= pair.distance) map[i][j] = '#';
     }
-
-    if (isLeft(current)) {
-      current = { row: current.row + 1, col: current.col - 1 };
-      continue;
-    }
-
-    if (isRight(current)) {
-      current = { row: current.row + 1, col: current.col + 1 };
-      continue;
-    }
-
-    if (current.row === start.row && current.col === start.col) break;
-
-    map[current.row][current.col] = 'o';
-    run = false;
   }
-
-  return !run;
 }
 
-function isDown(pos) {
-  if (pos.row + 1 >= map.length) return false;
-  return map[pos.row + 1][pos.col] === '.';
+function filterLines(line) {
+  if (line.row < 0 || line.row > max) return false;
+  if (line.col < 0 || line.col > max) return false;
+  return true;
 }
 
-function isLeft(pos) {
-  if (pos.row + 1 >= map.length) return false;
-  return map[pos.row + 1][pos.col - 1] === '.';
+function isOutside(pos) {
+  if (pos.row < 0 || pos.row > max) return true;
+  if (pos.col < 0 || pos.col > max) return true;
+  return false;
 }
 
-function isRight(pos) {
-  if (pos.row + 1 >= map.length) return false;
-  return map[pos.row + 1][pos.col + 1] === '.';
-}
-
-function printMap(skip = 0) {
+function printMap(line) {
   map.forEach((line, i) => {
-    console.log(line.filter((_, i) => i >= skip).join(''));
+    console.log(line.join(' '));
     if (i === map.length - 1) {
       console.log(Array(line.length * 2).join('-'));
     }
   });
+  // const lineToPrint = line + Math.abs(minRow);
+  // console.log(map[lineToPrint].join(' '));
+}
+
+function getDistance(pos1, pos2) {
+  const dRow = Math.abs(pos1.row - pos2.row);
+  const dCol = Math.abs(pos1.col - pos2.col);
+
+  return Math.max(dRow, dCol) + Math.min(dRow, dCol);
 }
