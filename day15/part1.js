@@ -17,8 +17,12 @@ const maxCol = Math.max(...cols);
 const minRow = Math.min(...rows);
 const minCol = Math.min(...cols);
 
-const sensors = lines.map((l) => l.sensor).map(s => { row: 10, col: 10 });
-const beacons = lines.map((l) => l.beacon);
+const sensors = lines
+  .map((l) => l.sensor)
+  .map((s) => ({ row: s.row + Math.abs(minRow), col: s.col + Math.abs(minCol) }));
+const beacons = lines
+  .map((l) => l.beacon)
+  .map((s) => ({ row: s.row + Math.abs(minRow), col: s.col + Math.abs(minCol) }));
 const map = [];
 
 for (let i = 0; i < maxRow - minRow; i++) {
@@ -34,9 +38,7 @@ for (let i = 0; i < maxRow - minRow; i++) {
   for (let j = 0; j < maxCol - minCol; j++) {
     const curr = { row: i, col: j };
     sensors.forEach((s) => {
-      // const sensor = { row: s.row + Math.abs(minRow), col: s.col + Math.abs(minCol) };
-      const sensor = { row: 9, col: 10 };
-      if (getDistance(curr, sensor) < 10) {
+      if (getDistance(curr, s) < 10) {
         map[i][j] = '#';
       }
     });
