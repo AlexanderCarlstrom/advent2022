@@ -1,17 +1,13 @@
 import { readFileSync } from 'node:fs';
 
-const regexp =
-  /Sensor at x=(?<sensorX>-?\d+), y=(?<sensorY>-?\d+): closest beacon is at x=(?<beaconX>-?\d+), y=(?<beaconY>-?\d+)/;
-const input = readFileSync('day15/input.txt', { encoding: 'utf-8' })
-  .trim()
-  .split('\n')
-  .map((line) => line.match(regexp).groups);
+const input = readFileSync('day15/input.txt', { encoding: 'utf-8' }).trim().split('\n');
 const max = 4000000;
 
 function getInput() {
   return input.map((line) => {
-    const sensor = { x: Number(line.sensorX), y: Number(line.sensorY) };
-    const beacon = { x: Number(line.beaconX), y: Number(line.beaconY) };
+    const parts = line.replaceAll(',', '').replaceAll(':', '').split(' ');
+    const sensor = { x: Number(parts[2].split('=')[1]), y: Number(parts[3].split('=')[1]) };
+    const beacon = { x: Number(parts[8].split('=')[1]), y: Number(parts[9].split('=')[1]) };
     const range = getDistance(sensor, beacon);
     return { sensor, range };
   });
