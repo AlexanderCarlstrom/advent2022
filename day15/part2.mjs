@@ -6,7 +6,7 @@ const input = readFileSync('day15/input.txt', { encoding: 'utf-8' })
   .trim()
   .split('\n')
   .map((line) => line.match(regexp).groups);
-const max = input.length === 14 ? 20 : 4000000;
+const max = 4000000;
 
 function getInput() {
   return input.map((line) => {
@@ -28,7 +28,8 @@ function solve() {
   const lines = getInput();
   for (let y = 0; y < max; y++) {
     const ranges = [];
-    for (const { sensor, range } of lines) {
+    for (let i = 0; i < lines.length; i++) {
+      const { sensor, range } = lines[i];
       const minDistance = getDistance(sensor, { x: sensor.x, y });
       if (minDistance <= range) {
         const sensorYRange = range - minDistance;
@@ -51,21 +52,21 @@ function solve() {
       }
     }
 
-    const res = [];
-    for (const range of ranges) {
-      if (range.from > max || 0 > range.to) continue;
-      res.push({ from: Math.max(range.from, 0), to: Math.min(range.to, max) });
-    }
+    const intervals = [];
+    ranges.forEach((range) => {
+      intervals.push({
+        from: Math.max(range.from, 0),
+        to: Math.min(range.to, max),
+      });
+    });
 
-    if (res.length > 1) {
-      const x = res[0].to + 1;
+    if (intervals.length > 1) {
+      const x = intervals[0].to + 1;
       console.log(x, y);
       console.log(x * 4000000 + y);
       return;
     }
   }
-
-  console.log(1);
 }
 
 solve();
