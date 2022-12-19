@@ -1,37 +1,44 @@
 import { readFileSync } from 'node:fs';
 
-// Valve AA has flow rate=0; tunnels lead to valves DD, II, BB
-// const regexp = /Valve (?<tunnel>-?\D+) has flow rate=(?<rate>-?\d+); tunnels lead to valves DD, II, BB/;
 const input = readFileSync('day16/fake.txt', { encoding: 'utf-8' }).trim().split('\n');
-const list = new Map();
 
 function getInput() {
+  const pattern = /^Valve (?<valve>[A-Z]{2}) has flow rate=(?<rate>\d+); tunnels? leads? to valves? (?<edges>.*)/;
   return input.map((line) => {
-    const parts = line.replaceAll(';', '').replaceAll(',', '').split(' ');
-    const tunnel = parts[1];
-    const flowRate = Number(parts[4].split('=')[1]);
-    const tunnels = [];
-    for (let i = 9; i < parts.length; i++) {
-      tunnels.push(parts[i]);
-    }
-
-    return { tunnel, flowRate, tunnels };
+    const { valve, rate, edges } = line.match(pattern).groups;
+    return { valve, rate: parseInt(rate), edges: edges.split(', ') };
   });
 }
 
-function addNode(tunnel, flowRate, edges) {
-  list.set(tunnel, { flowRate, edges });
+function dfs(valves) {
+  const q = [];
+  const time = 30;
+  const start = {
+    valve: 'AA',
+    time,
+    flow: 0,
+    openValves: {},
+  };
+  q.push(start);
+
+  let maxFlow = 0;
+  while (q.length > 0) {
+    const current = q.shift();
+
+    if (current.time <= 0) {
+      console.log('ERROR: Ran out of time');
+      return;
+    }
+
+    const others = Object.values(valves).filter((valve) => valve.rate > 0 && !current.openValves[valve.valve]);
+    if (others.length === 0) {
+    }
+  }
 }
 
 function solve_part_1() {
-  const lines = getInput();
-
-  for (const line of lines) {
-    addNode(line.tunnel, line.flowRate, line.tunnels);
-  }
-  console.log(list);
-
-  for (let i = 30; i > 0; i++) {}
+  const valves = Object.fromEntries(getInput().map((i) => [i.valve, i]));
+  dfs(valves);
 }
 
 function solve_part_2() {}
